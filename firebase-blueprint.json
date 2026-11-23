@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Commuter profile, theme, accessibility, dashboard widget layout, and E2EE key metadata",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner Firebase Auth UID" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "themeMode": { "type": "string", "enum": ["SYSTEM", "LIGHT", "DARK"] },
+        "biometricRequired": { "type": "boolean", "description": "Whether biometric unlock is enforced on launch" },
+        "highContrast": { "type": "boolean", "description": "High contrast accessibility palette toggle" },
+        "voiceFeedbackEnabled": { "type": "boolean", "description": "Spoken TTS navigation and command confirmations" },
+        "e2eeSaltBase64": { "type": "string", "description": "Base64 salt for E2EE sync key derivation" },
+        "e2eeVerifierBase64": { "type": "string", "description": "AES-GCM encrypted key check token" },
+        "dashboardWidgets": { "type": "array", "description": "Ordered list of enabled dashboard widget IDs" },
+        "alertCorridors": { "type": "array", "description": "Subscribed transit lines/corridors for personalized alerts" },
+        "lastBackupAtMillis": { "type": "integer", "description": "Epoch millis of last encrypted cloud backup" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp on creation" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp on update" }
+      },
+      "required": ["userId", "displayName", "themeMode", "biometricRequired", "highContrast", "voiceFeedbackEnabled", "dashboardWidgets", "alertCorridors", "createdAt", "updatedAt"]
+    },
+    "EncryptedRoute": {
+      "title": "EncryptedRoute",
+      "description": "End-to-end encrypted commuter route synced across devices and cached offline",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner Firebase Auth UID" },
+        "displayLabel": { "type": "string", "description": "Short route label" },
+        "corridorTag": { "type": "string", "description": "Primary transit corridor tag" },
+        "mode": { "type": "string", "enum": ["TRANSIT", "RAIL", "BIKE", "DRIVE", "WALK"] },
+        "durationMinutes": { "type": "integer", "description": "Estimated route duration in minutes" },
+        "distanceKm": { "type": "number", "description": "Route distance in kilometers" },
+        "offlinePinned": { "type": "boolean", "description": "Whether route is pinned for offline navigation" },
+        "encryptedPayload": { "type": "string", "description": "AES-256-GCM Base64 ciphertext of origin, destination, stops, and notes" },
+        "payloadIv": { "type": "string", "description": "Base64 GCM initialization vector" },
+        "keyVersion": { "type": "integer", "description": "Encryption key version" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp on creation" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp on update" }
+      },
+      "required": ["userId", "displayLabel", "corridorTag", "mode", "durationMinutes", "distanceKm", "offlinePinned", "encryptedPayload", "payloadIv", "keyVersion", "createdAt", "updatedAt"]
+    },
+    "TransitAlert": {
+      "title": "TransitAlert",
+      "description": "Personalized transit alert or account security update with encrypted details",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner Firebase Auth UID" },
+        "category": { "type": "string", "enum": ["TRANSIT", "ACCOUNT", "SECURITY", "SYNC"] },
+        "severity": { "type": "string", "enum": ["INFO", "ADVISORY", "CRITICAL"] },
+        "corridor": { "type": "string", "description": "Transit corridor or subsystem name" },
+        "title": { "type": "string", "description": "Alert headline" },
+        "encryptedDetails": { "type": "string", "description": "AES-256-GCM Base64 encrypted alert body" },
+        "detailsIv": { "type": "string", "description": "Base64 GCM initialization vector" },
+        "acknowledged": { "type": "boolean", "description": "Whether the user has acknowledged the alert" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp on creation" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp on update" }
+      },
+      "required": ["userId", "category", "severity", "corridor", "title", "encryptedDetails", "detailsIv", "acknowledged", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User preferences, dashboard customization, and E2EE key metadata"
+    },
+    "/users/{userId}/routes/{routeId}": {
+      "schema": { "$ref": "#/entities/EncryptedRoute" },
+      "description": "End-to-end encrypted commuter routes synchronized across devices"
+    },
+    "/users/{userId}/alerts/{alertId}": {
+      "schema": { "$ref": "#/entities/TransitAlert" },
+      "description": "Personalized transit and account security alerts"
+    }
+  }
+}
